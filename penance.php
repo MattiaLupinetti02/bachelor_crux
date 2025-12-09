@@ -89,5 +89,6 @@ require_once 'includes/database.php';
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="assets/js/wheel.js"></script>
+    <script src="assets/js/crossword-game.js"></script>
 </body>
 </html>

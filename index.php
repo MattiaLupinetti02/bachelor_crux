@@ -10,7 +10,8 @@ require_once 'includes/database.php';
     <title>Ruota dei Libri - Gioco Letterario</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">  
+    <link rel="stylesheet" href="assets/css/crossword.css">
 </head>
 <body>
     <div class="container">
@@ -19,40 +20,44 @@ require_once 'includes/database.php';
                 <button id="switchToPenance" class="switch-btn">
                     <i class="fas fa-exchange-alt"></i> Vai alle Penitenze
                 </button>
+                <button id="switchToCrossword" class="switch-btn">
+                    <i class="fas fa-puzzle-piece"></i> Cruciverba
+                </button>
             </div>
             <h1><i class="fas fa-book"></i> RUOTA DEI LIBRI</h1>
             <p class="subtitle">Clicca sulla ruota per estrarre una domanda su uno dei libri!</p>
         </header>
         
         <main class="main-content">
-            <div class="wheel-container">
-                <div class="wheel-wrapper">
-                    <canvas id="wheelCanvas" width="600" height="600"></canvas>
-                    <div class="wheel-center">
-                        <div class="spin-button" id="spinButton">
-                            <i class="fas fa-play"></i>
-                            <span>GIRA!</span>
-                        </div>
-                    </div>
-                    <div class="pointer"></div>
-                </div>
+            <div class="controls">
+                <label for="difficulty-select">Difficoltà:</label>
+                <select id="difficulty-select">
+                    <option value="facile">Facile</option>
+                    <option value="medio">Medio</option>
+                    <option value="difficile">Difficile</option>
+                </select>
                 
-                <div class="controls">
-                    <div class="player-input">
-                        <label for="playerName"><i class="fas fa-user"></i> Giocatore:</label>
-                        <input type="text" id="playerName" placeholder="Il tuo nome" value="Giocatore">
-                    </div>
-                    <button id="resetButton" class="btn-secondary">
-                        <i class="fas fa-redo"></i> Reset Ruota
-                    </button>
-                </div>
+                <button id="generate-crossword">Genera Nuovo Cruciverba</button>
+                
+                <button id="check-solution">Controlla Soluzione</button>
+                <button id="reveal-solution">Mostra Soluzione</button>
+            </div>
+        
+            <div class="stats" id="stats">
+                Parole piazzate: <span id="placed-count">0</span> | 
+                Dimensioni: <span id="dimensions">15x15</span>
             </div>
             
-            <div class="prizes-panel">
-                <h2><i class="fas fa-book"></i> Libri Disponibili</h2>
-                <div class="prizes-grid" id="prizesGrid">
-                    <!-- I libri saranno caricati dinamicamente -->
-                    <p class="no-items">Caricamento libri in corso...</p>
+            <div class="crossword-container">
+                <div id="crossword-grid">
+                    <!-- La griglia verrà generata qui -->
+                </div>
+                
+                <div class="clues-container">
+                    <h2>Definizioni</h2>
+                    <div id="crossword-clues">
+                        <!-- Le definizioni verranno generate qui -->
+                    </div>
                 </div>
             </div>
         </main>
@@ -88,6 +93,20 @@ require_once 'includes/database.php';
     
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="assets/js/wheel.js"></script>
+    <!--<script src="assets/js/wheel.js"></script>-->
+    <script src="assets/js/crossword.js"></script>
+
+    <script>
+        // Aggiungi gestione del pulsante Cruciverba
+        $(document).ready(function() {
+            $('#switchToCrossword').click(function() {
+                window.location.href = 'crossword.php';
+            });
+            
+            $('#switchToPenance').click(function() {
+                window.location.href = 'penance.php';
+            });
+        });
+    </script>
 </body>
 </html>
