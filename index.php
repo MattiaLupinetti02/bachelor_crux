@@ -30,6 +30,7 @@ require_once 'includes/database.php';
         
         <main class="main-content">
             <div class="controls">
+                
                 <label for="difficulty-select">Difficoltà:</label>
                 <select id="difficulty-select">
                     <option value="facile">Facile</option>
@@ -37,7 +38,7 @@ require_once 'includes/database.php';
                     <option value="difficile">Difficile</option>
                 </select>
                 
-                <button id="generate-crossword">Genera Nuovo Cruciverba</button>
+                <!--<button id="generate-crossword">Genera Nuovo Cruciverba</button>-->
                 
                 <button id="check-solution">Controlla Soluzione</button>
                 <button id="reveal-solution">Mostra Soluzione</button>

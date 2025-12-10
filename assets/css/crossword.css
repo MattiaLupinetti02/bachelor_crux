@@ -166,3 +166,597 @@
         font-size: 16px;
     }
 }
+
+/* Stili per il nuovo layout */
+
+.game-switcher {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.game-switcher .switch-btn {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.game-switcher .switch-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.game-switcher .switch-btn.active {
+    background: white;
+    color: var(--primary-color);
+    border-color: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Statistiche */
+.crossword-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: var(--light-color);
+    border-radius: 10px;
+    transition: transform 0.3s;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--dark-color);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 5px;
+}
+
+/* Container del cruciverba */
+.crossword-game-container {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+/* Loading */
+.loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading .fa-spinner {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.loading p {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* Istruzioni */
+.game-instructions {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 15px;
+    padding: 30px;
+    margin-top: 30px;
+    border-left: 5px solid var(--primary-color);
+}
+
+.game-instructions h3 {
+    color: var(--dark-color);
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.instructions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.instruction-item:hover {
+    transform: translateX(10px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.instruction-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--secondary-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.instruction-text {
+    flex: 1;
+    color: var(--dark-color);
+}
+
+/* Modal vittoria */
+.victory-modal {
+    max-width: 600px;
+    text-align: center;
+}
+
+.victory-content {
+    padding: 20px;
+}
+
+.victory-icon {
+    font-size: 4rem;
+    color: #FFD700;
+    margin-bottom: 20px;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+.victory-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.victory-stat {
+    background: var(--light-color);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.victory-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: 5px;
+}
+
+.victory-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    text-transform: uppercase;
+}
+
+.victory-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn-victory {
+    padding: 15px 30px;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s;
+    min-width: 200px;
+    justify-content: center;
+}
+
+.btn-victory:first-child {
+    background: linear-gradient(to right, var(--primary-color), #FF8E8E);
+    color: white;
+}
+
+.btn-victory:last-child {
+    background: white;
+    color: var(--dark-color);
+    border: 2px solid var(--light-color);
+}
+
+.btn-victory:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .crossword-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .victory-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .victory-actions {
+        flex-direction: column;
+    }
+    
+    .btn-victory {
+        width: 100%;
+    }
+    
+    .instructions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .game-switcher {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .game-switcher .switch-btn {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .crossword-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .crossword-game-container {
+        padding: 15px;
+    }
+}
+
+/* BORDI COLORATI PER DIFFICOLTÀ PAROLE */
+
+/* Classe base per tutte le celle con parola */
+.cell-with-word {
+    position: relative;
+}
+
+/* Bordi per difficoltà FACILE (verde) */
+.cell-difficulty-facile {
+    border-color: #4CAF50 !important;
+    box-shadow: inset 0 0 0 2px rgba(76, 175, 80, 0.3);
+}
+
+.cell-number.facile {
+    color: #4CAF50 !important;
+    background-color: rgba(76, 175, 80, 0.1);
+    border-radius: 3px;
+    padding: 1px 3px;
+}
+
+/* Bordi per difficoltà MEDIO (giallo/arancione) */
+.cell-difficulty-medio {
+    border-color: #FF9800 !important;
+    box-shadow: inset 0 0 0 2px rgba(255, 152, 0, 0.3);
+}
+
+.cell-number.medio {
+    color: #FF9800 !important;
+    background-color: rgba(255, 152, 0, 0.1);
+    border-radius: 3px;
+    padding: 1px 3px;
+}
+
+/* Bordi per difficoltà DIFFICILE (rosso) */
+.cell-difficulty-difficile {
+    border-color: #f44336 !important;
+    box-shadow: inset 0 0 0 2px rgba(244, 67, 54, 0.3);
+}
+
+.cell-number.difficile {
+    color: #f44336 !important;
+    background-color: rgba(244, 67, 54, 0.1);
+    border-radius: 3px;
+    padding: 1px 3px;
+}
+
+/* Animazione per evidenziare la difficoltà al passaggio del mouse */
+.crossword-grid td.filled:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+    z-index: 10;
+}
+
+/* Stile per le definizioni con indicatore di difficoltà */
+.definition-item {
+    position: relative;
+    padding-left: 30px !important;
+}
+
+.definition-item:before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 12px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.definition-item.facile:before {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.definition-item.medio:before {
+    background-color: #FF9800;
+    border-color: #FF9800;
+}
+
+.definition-item.difficile:before {
+    background-color: #f44336;
+    border-color: #f44336;
+}
+
+/* Legenda difficoltà */
+.difficulty-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid #fff;
+}
+
+.legend-color.facile {
+    background-color: #4CAF50;
+}
+
+.legend-color.medio {
+    background-color: #FF9800;
+}
+
+.legend-color.difficile {
+    background-color: #f44336;
+}
+
+/* Evidenziazione parole per difficoltà nella griglia */
+.word-highlight-facile {
+    background-color: rgba(76, 175, 80, 0.05) !important;
+}
+
+.word-highlight-medio {
+    background-color: rgba(255, 152, 0, 0.05) !important;
+}
+
+.word-highlight-difficile {
+    background-color: rgba(244, 67, 54, 0.05) !important;
+}
+
+/* Tooltip per mostrare la difficoltà */
+.cell-difficulty-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+}
+
+.crossword-grid td:hover .cell-difficulty-tooltip {
+    opacity: 1;
+}
+
+/* Stile per input in base alla difficoltà */
+.cell-input.facile {
+    font-weight: 600;
+    color: #2E7D32;
+}
+
+.cell-input.medio {
+    font-weight: 700;
+    color: #EF6C00;
+}
+
+.cell-input.difficile {
+    font-weight: 800;
+    color: #C62828;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .difficulty-legend {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .cell-difficulty-tooltip {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+}
+
+/* Badge di difficoltà nelle definizioni */
+.difficulty-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 10px;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 12px;
+    text-transform: uppercase;
+    color: white;
+}
+
+.difficulty-badge.facile {
+    background-color: #4CAF50;
+}
+
+.difficulty-badge.medio {
+    background-color: #FF9800;
+}
+
+.difficulty-badge.difficile {
+    background-color: #f44336;
+}
+
+/* Miglioramenti alla visualizzazione delle definizioni */
+.clue-section li {
+    margin-bottom: 12px;
+    padding: 12px 15px;
+    background-color: #f9f9f9;
+    border-left: 4px solid #ddd;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.clue-section li:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.clue-section li.facile {
+    border-left-color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.05);
+}
+
+.clue-section li.medio {
+    border-left-color: #FF9800;
+    background-color: rgba(255, 152, 0, 0.05);
+}
+
+.clue-section li.difficile {
+    border-left-color: #f44336;
+    background-color: rgba(244, 67, 54, 0.05);
+}
+
+/* Pulsanti filtro difficoltà */
+.difficulty-filter {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 20px;
+    border: 2px solid transparent;
+    border-radius: 25px;
+    background: #f0f0f0;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.filter-btn.active {
+    color: white;
+}
+
+.filter-btn.facile.active {
+    background: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.filter-btn.medio.active {
+    background: #FF9800;
+    border-color: #FF9800;
+}
+
+.filter-btn.difficile.active {
+    background: #f44336;
+    border-color: #f44336;
+}
+
+.filter-btn:hover:not(.active) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}

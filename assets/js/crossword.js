@@ -1,5 +1,6 @@
+// assets/js/crossword.js
 class CrosswordGenerator {
-    constructor(width = 15, height = 15) {
+    constructor(width = 25, height = 25) {
         this.width = width;
         this.height = height;
         this.grid = [];
@@ -14,13 +15,18 @@ class CrosswordGenerator {
 
     initializeGrid() {
         this.grid = Array(this.height).fill().map(() => 
-            Array(this.width).fill({ letter: '', wordId: null, isStart: false })
+            Array(this.width).fill({ 
+                letter: '', 
+                wordId: null, 
+                isStart: false,
+                isBlack: true 
+            })
         );
     }
 
-    async loadDefinitions(difficulty = 'facile', limit = 15) {
+    async loadDefinitions(difficulty = 'facile', limit = 40) {
         try {
-            const response = await fetch(`api/get_definitions.php?difficolta=${difficulty}&limit=${limit}`);
+            const response = await fetch(`api/get_definitions.php?limit=${limit}`);
             const data = await response.json();
             
             if (data.success) {
@@ -48,33 +54,140 @@ class CrosswordGenerator {
         }
     }
 
+    calculateWordScore(word) {
+        const commonLetters = ['A', 'E', 'I', 'O', 'R', 'S', 'T', 'L', 'N', 'C'];
+        const rareLetters = ['Q', 'X', 'Y', 'Z', 'J', 'K', 'W'];
+        
+        let score = 0;
+        for (let letter of word) {
+            if (commonLetters.includes(letter)) score += 2;
+            else if (rareLetters.includes(letter)) score -= 1;
+            else score += 1;
+        }
+        
+        const vowels = (word.match(/[AEIOU]/g) || []).length;
+        score += vowels * 0.5;
+        
+        return score;
+    }
+
+    countIntersections(word, x, y, direction) {
+        const dx = direction === 'horizontal' ? 1 : 0;
+        const dy = direction === 'vertical' ? 1 : 0;
+        let intersections = 0;
+        
+        for (let i = 0; i < word.length; i++) {
+            const posX = x + (dx * i);
+            const posY = y + (dy * i);
+            
+            if (posY >= 0 && posY < this.height && posX >= 0 && posX < this.width) {
+                if (this.grid[posY][posX].letter !== '') {
+                    intersections++;
+                }
+            }
+        }
+        
+        return intersections;
+    }
+
     generate() {
         if (this.words.length === 0) {
             console.error('Nessuna parola caricata');
             return false;
         }
 
-        // Piazza la prima parola al centro
-        const firstWord = this.words[0];
+        console.log(`Inizio generazione per ${this.words.length} parole su griglia ${this.width}x${this.height}`);
+        
+        // Filtra parole troppo lunghe per la griglia
+        const maxWordLength = Math.min(this.width, this.height);
+        const validWords = this.words.filter(word => word.length <= maxWordLength);
+        
+        if (validWords.length === 0) {
+            console.error('Nessuna parola adatta per la griglia');
+            return false;
+        }
+        
+        console.log(`${validWords.length} parole adatte per la griglia`);
+        
+        // Piazza la prima parola (più lunga) al centro
+        const firstWord = validWords[0];
         const startX = Math.floor((this.width - firstWord.length) / 2);
         const startY = Math.floor(this.height / 2);
         
-        this.placeWord(firstWord, startX, startY, 'horizontal');
+        console.log(`Prima parola: "${firstWord.word}" (${firstWord.length} lettere) in [${startX},${startY}]`);
+        
+        if (!this.placeWord(firstWord, startX, startY, 'horizontal')) {
+            console.error('Impossibile piazzare la prima parola');
+            return false;
+        }
+        
         firstWord.placed = true;
         this.placedWords.push(firstWord);
 
+        // Ordina le parole rimanenti per facilità di piazzamento
+        const remainingWords = validWords.slice(1);
+        
+        remainingWords.sort((a, b) => {
+            if (b.length !== a.length) return b.length - a.length;
+            const aScore = this.calculateWordScore(a.word);
+            const bScore = this.calculateWordScore(b.word);
+            return bScore - aScore;
+        });
+
+        console.log(`Tentativo piazzamento per ${remainingWords.length} parole rimanenti`);
+        
         // Prova a piazzare le altre parole
-        for (let i = 1; i < this.words.length; i++) {
-            this.tryPlaceWord(this.words[i]);
+        let placedCount = 0;
+        for (let i = 0; i < remainingWords.length; i++) {
+            const word = remainingWords[i];
+            
+            if (this.tryPlaceWord(word)) {
+                placedCount++;
+                
+                if (placedCount % 10 === 0) {
+                    console.log(`Piazzate ${placedCount}/${remainingWords.length} parole`);
+                }
+            }
+            
+            if (this.placedWords.length >= 40) {
+                console.log(`Raggiunte 40 parole piazzate, interruzione anticipata`);
+                break;
+            }
         }
 
+        // Aggiorna le celle nere
+        this.updateBlackCells();
+        
         // Aggiorna le statistiche
         this.updateStats();
+        
+        console.log(`Generazione completata: ${this.placedWords.length}/${validWords.length} parole piazzate`);
         
         return this.grid;
     }
 
     placeWord(word, x, y, direction) {
+        // Controlla che le coordinate siano valide
+        if (x < 0 || y < 0) {
+            console.warn(`Coordinate negative per "${word.word}": [${x},${y}]`);
+            return false;
+        }
+        
+        if (direction === 'horizontal' && x + word.length > this.width) {
+            console.warn(`Fuori dai bordi orizzontali per "${word.word}": x=${x}, lunghezza=${word.length}`);
+            return false;
+        }
+        
+        if (direction === 'vertical' && y + word.length > this.height) {
+            console.warn(`Fuori dai bordi verticali per "${word.word}": y=${y}, lunghezza=${word.length}`);
+            return false;
+        }
+        
+        // Controlla se può essere piazzata
+        if (!this.canPlaceWord(word.word, x, y, direction)) {
+            return false;
+        }
+        
         word.x = x;
         word.y = y;
         word.direction = direction;
@@ -86,61 +199,90 @@ class CrosswordGenerator {
             const posX = x + (dx * i);
             const posY = y + (dy * i);
             
-            // Marca come inizio della parola
+            // Controlla di nuovo i bordi per sicurezza
+            if (posY >= this.height || posX >= this.width) {
+                console.error(`Errore: tentativo di accesso a cella fuori limiti [${posX},${posY}]`);
+                return false;
+            }
+            
+            const currentCell = this.grid[posY][posX];
             const isStart = i === 0;
             
             this.grid[posY][posX] = {
                 letter: word.word[i],
                 wordId: word.id,
-                isStart: isStart,
-                definition: isStart ? word.definition : null
+                isStart: isStart || currentCell.isStart,
+                isBlack: false
             };
         }
+        
+        return true;
     }
 
     tryPlaceWord(word) {
         const letters = word.word.split('');
+        let bestPosition = null;
+        let maxIntersections = -1;
         
+        // Cerca tra tutte le parole già piazzate
         for (const placedWord of this.placedWords) {
+            // Cerca lettere in comune tra le due parole
             for (let i = 0; i < placedWord.word.length; i++) {
+                const placedLetter = placedWord.word[i];
+                
                 for (let j = 0; j < letters.length; j++) {
-                    if (placedWord.word[i] === letters[j]) {
-                        // Trova una posizione valida per l'intersezione
-                        const position = this.findValidPosition(word, placedWord, i, j);
-                        if (position) {
-                            this.placeWord(word, position.x, position.y, position.direction);
-                            word.placed = true;
-                            this.placedWords.push(word);
-                            return true;
+                    if (placedLetter === letters[j]) {
+                        // Prova a posizionare la parola nuova
+                        const positions = [];
+                        
+                        // Se la parola piazzata è orizzontale, prova verticale
+                        if (placedWord.direction === 'horizontal') {
+                            positions.push({
+                                x: placedWord.x + i,
+                                y: placedWord.y - j,
+                                direction: 'vertical'
+                            });
+                        }
+                        
+                        // Se la parola piazzata è verticale, prova orizzontale
+                        if (placedWord.direction === 'vertical') {
+                            positions.push({
+                                x: placedWord.x - j,
+                                y: placedWord.y + i,
+                                direction: 'horizontal'
+                            });
+                        }
+                        
+                        // Valuta tutte le posizioni trovate
+                        for (const pos of positions) {
+                            if (this.canPlaceWord(word.word, pos.x, pos.y, pos.direction)) {
+                                // Conta quanti incroci avrebbe questa posizione
+                                const intersections = this.countIntersections(word.word, pos.x, pos.y, pos.direction);
+                                
+                                // Preferisci posizioni con più incroci
+                                if (intersections > maxIntersections) {
+                                    maxIntersections = intersections;
+                                    bestPosition = pos;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-        return false;
-    }
-
-    findValidPosition(word, placedWord, placedIndex, wordIndex) {
-        const directionsToTry = placedWord.direction === 'horizontal' ? ['vertical'] : ['horizontal'];
         
-        for (const direction of directionsToTry) {
-            if (direction === 'horizontal') {
-                const x = placedWord.x + placedIndex - wordIndex;
-                const y = placedWord.y;
-                
-                if (this.canPlaceWord(word.word, x, y, direction)) {
-                    return { x, y, direction };
-                }
-            } else {
-                const x = placedWord.x;
-                const y = placedWord.y + placedIndex - wordIndex;
-                
-                if (this.canPlaceWord(word.word, x, y, direction)) {
-                    return { x, y, direction };
-                }
+        // Se hai trovato una buona posizione, piazza la parola
+        if (bestPosition && maxIntersections >= 0) {
+            if (this.placeWord(word, bestPosition.x, bestPosition.y, bestPosition.direction)) {
+                word.placed = true;
+                this.placedWords.push(word);
+                console.log(`Piazzata: "${word.word}" in [${bestPosition.x},${bestPosition.y}] con ${maxIntersections} incroci`);
+                return true;
             }
         }
-        return null;
+        
+        console.log(`Non piazzata: "${word.word}"`);
+        return false;
     }
 
     canPlaceWord(word, x, y, direction) {
@@ -156,6 +298,12 @@ class CrosswordGenerator {
         for (let i = 0; i < word.length; i++) {
             const posX = x + (dx * i);
             const posY = y + (dy * i);
+            
+            // Controlla che la posizione sia valida
+            if (posY >= this.height || posX >= this.width) {
+                return false;
+            }
+            
             const cell = this.grid[posY][posX];
 
             // Se la cella non è vuota e la lettera non corrisponde
@@ -169,6 +317,20 @@ class CrosswordGenerator {
                     return false;
                 }
             }
+        }
+
+        // Dopo le prime 3 parole, verifica che ci sia almeno un'intersezione
+        if (this.placedWords.length > 3) {
+            let hasIntersection = false;
+            for (let i = 0; i < word.length; i++) {
+                const posX = x + (dx * i);
+                const posY = y + (dy * i);
+                if (this.grid[posY][posX].letter !== '') {
+                    hasIntersection = true;
+                    break;
+                }
+            }
+            if (!hasIntersection) return false;
         }
 
         return true;
@@ -225,6 +387,19 @@ class CrosswordGenerator {
         return true;
     }
 
+    updateBlackCells() {
+        // Aggiorna le celle nere
+        for (let y = 0; y < this.height; y++) {
+            for (let x = 0; x < this.width; x++) {
+                if (this.grid[y][x].letter === '') {
+                    this.grid[y][x].isBlack = true;
+                } else {
+                    this.grid[y][x].isBlack = false;
+                }
+            }
+        }
+    }
+
     renderHTML() {
         let html = '<table class="crossword-grid" cellspacing="0" cellpadding="0">';
         
@@ -232,16 +407,14 @@ class CrosswordGenerator {
             html += '<tr>';
             for (let x = 0; x < this.width; x++) {
                 const cell = this.grid[y][x];
-                const isEmpty = cell.letter === '';
-                const cellClass = isEmpty ? 'empty' : 'filled';
+                const cellClass = cell.isBlack ? 'empty' : 'filled';
                 const number = cell.isStart ? this.getWordNumber(cell.wordId) : '';
                 
                 html += `<td class="${cellClass}" data-x="${x}" data-y="${y}">`;
                 if (number) {
                     html += `<span class="cell-number">${number}</span>`;
                 }
-                if (!isEmpty) {
-                    html += `<span class="cell-letter">${cell.letter}</span>`;
+                if (!cell.isBlack) {
                     html += `<input type="text" maxlength="1" class="cell-input" data-x="${x}" data-y="${y}">`;
                 }
                 html += '</td>';
@@ -255,7 +428,7 @@ class CrosswordGenerator {
 
     getWordNumber(wordId) {
         const word = this.words.find(w => w.id === wordId);
-        if (word) {
+        if (word && word.placed) {
             const index = this.placedWords.findIndex(w => w.id === wordId);
             return index + 1;
         }
@@ -296,36 +469,11 @@ class CrosswordGenerator {
             }
         }
     }
-
-    async saveCrossword(difficulty = 'facile') {
-        const crosswordData = {
-            difficolta: difficulty,
-            grid: this.grid,
-            words: this.placedWords,
-            dimensions: `${this.width}x${this.height}`,
-            placedCount: this.placedWords.length
-        };
-
-        try {
-            const response = await fetch('api/save_crossword.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(crosswordData)
-            });
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Errore nel salvataggio:', error);
-            return { success: false, message: error.message };
-        }
-    }
 }
 
 // Funzione principale per inizializzare il cruciverba
 async function initializeCrossword(difficulty = 'facile') {
-    const crossword = new CrosswordGenerator(15, 15);
+    const crossword = new CrosswordGenerator(25, 25);
     
     // Carica definizioni dal database
     const loaded = await crossword.loadDefinitions(difficulty);
@@ -346,12 +494,6 @@ async function initializeCrossword(difficulty = 'facile') {
     
     // Aggiungi gestione input
     setupInputHandlers(crossword);
-    
-    // Salva nel database
-    const saveResult = await crossword.saveCrossword(difficulty);
-    if (saveResult.success) {
-        console.log('Cruciverba salvato con ID:', saveResult.id);
-    }
     
     return crossword;
 }
@@ -390,62 +532,232 @@ function checkCompletion(crossword) {
     const correctInputs = document.querySelectorAll('.cell-input.correct');
     
     if (inputs.length === correctInputs.length) {
-        alert('Complimenti! Hai completato il cruciverba!');
+        // Usa il modal esistente nel tuo index.php
+        showResultInModal('Complimenti! Hai completato il cruciverba!', 'success');
+    }
+}
+
+function showResultInModal(message, type = 'success') {
+    const resultContent = document.getElementById('resultContent');
+    const resultModal = document.getElementById('resultModal');
+    
+    if (resultContent && resultModal) {
+        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+        const color = type === 'success' ? '#4CAF50' : '#f44336';
+        
+        resultContent.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <i class="fas ${icon}" style="font-size: 4rem; color: ${color}; margin-bottom: 20px;"></i>
+                <h3 style="color: ${color}; margin-bottom: 15px;">${message}</h3>
+                <p>Hai completato il cruciverba con successo!</p>
+            </div>
+        `;
+        
+        // Mostra il modal
+        resultModal.style.display = 'block';
+        
+        // Aggiungi gestione per chiudere il modal
+        const closeModal = document.querySelector('.close-modal');
+        if (closeModal) {
+            closeModal.onclick = function() {
+                resultModal.style.display = 'none';
+            }
+        }
+        
+        // Chiudi cliccando fuori
+        window.onclick = function(event) {
+            if (event.target == resultModal) {
+                resultModal.style.display = 'none';
+            }
+        }
+    } else {
+        // Fallback se il modal non esiste
+        alert(message);
     }
 }
 
 // Event listeners per i controlli
-document.addEventListener('DOMContentLoaded', function() {
-    const generateBtn = document.getElementById('generate-crossword');
+$(document).ready(function() {
     const difficultySelect = document.getElementById('difficulty-select');
     const checkSolutionBtn = document.getElementById('check-solution');
     const revealSolutionBtn = document.getElementById('reveal-solution');
+    const generateBtn = document.getElementById('generate-crossword');
     
     let currentCrossword = null;
     
-    generateBtn.addEventListener('click', async function() {
-        const difficulty = difficultySelect.value;
-        currentCrossword = await initializeCrossword(difficulty);
-    });
+    if (generateBtn) {
+        generateBtn.addEventListener('click', async function() {
+            const difficulty = difficultySelect.value;
+            currentCrossword = await initializeCrossword(difficulty);
+        });
+    }
     
-    checkSolutionBtn.addEventListener('click', function() {
-        if (!currentCrossword) return;
-        
-        let allCorrect = true;
-        document.querySelectorAll('.cell-input').forEach(input => {
-            const x = parseInt(input.dataset.x);
-            const y = parseInt(input.dataset.y);
-            const cell = currentCrossword.grid[y][x];
+    if (checkSolutionBtn) {
+        checkSolutionBtn.addEventListener('click', function() {
+            if (!currentCrossword) {
+                showResultInModal('Genera prima un cruciverba!', 'warning');
+                return;
+            }
             
-            if (input.value.toUpperCase() !== cell.letter) {
-                input.classList.add('incorrect');
-                allCorrect = false;
+            let allCorrect = true;
+            document.querySelectorAll('.cell-input').forEach(input => {
+                const x = parseInt(input.dataset.x);
+                const y = parseInt(input.dataset.y);
+                const cell = currentCrossword.grid[y][x];
+                
+                if (input.value.toUpperCase() !== cell.letter) {
+                    input.classList.add('incorrect');
+                    allCorrect = false;
+                }
+            });
+            
+            if (allCorrect) {
+                showResultInModal('Complimenti! Tutte le risposte sono corrette!', 'success');
+            } else {
+                showResultInModal('Alcune risposte sono sbagliate. Correggi le celle evidenziate in rosso.', 'warning');
             }
         });
-        
-        if (allCorrect) {
-            alert('Complimenti! Tutte le risposte sono corrette!');
-        } else {
-            alert('Alcune risposte sono sbagliate. Correggi le celle evidenziate in rosso.');
-        }
-    });
+    }
     
-    revealSolutionBtn.addEventListener('click', function() {
-        if (!currentCrossword) return;
-        
-        document.querySelectorAll('.cell-input').forEach(input => {
-            const x = parseInt(input.dataset.x);
-            const y = parseInt(input.dataset.y);
-            const cell = currentCrossword.grid[y][x];
+    if (revealSolutionBtn) {
+        revealSolutionBtn.addEventListener('click', function() {
+            if (!currentCrossword) {
+                showResultInModal('Genera prima un cruciverba!', 'warning');
+                return;
+            }
             
-            input.value = cell.letter;
-            input.classList.add('correct');
-            input.readOnly = true;
+            document.querySelectorAll('.cell-input').forEach(input => {
+                const x = parseInt(input.dataset.x);
+                const y = parseInt(input.dataset.y);
+                const cell = currentCrossword.grid[y][x];
+                
+                input.value = cell.letter;
+                input.classList.add('correct');
+                input.readOnly = true;
+            });
+            
+            showResultInModal('Soluzione rivelata!', 'info');
         });
-    });
+    }
     
     // Genera un cruciverba all'avvio
-    initializeCrossword('facile').then(crossword => {
-        currentCrossword = crossword;
-    });
+    if (difficultySelect) {
+        initializeCrossword('facile').then(crossword => {
+            currentCrossword = crossword;
+        });
+    }
+    
+    // Gestione del modal esistente
+    const closeModal = document.querySelector('.close-modal');
+    if (closeModal) {
+        closeModal.addEventListener('click', function() {
+            document.getElementById('resultModal').style.display = 'none';
+        });
+    }
+    
+    const playAgainButton = document.getElementById('playAgainButton');
+    if (playAgainButton) {
+        playAgainButton.addEventListener('click', function() {
+            location.reload();
+        });
+    }
+    
+    const shareButton = document.getElementById('shareButton');
+    if (shareButton) {
+        shareButton.addEventListener('click', function() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Cruciverba Completato',
+                    text: 'Ho completato un cruciverba sulla Ruota dei Libri!',
+                    url: window.location.href
+                });
+            } else {
+                alert('Condivisione non supportata su questo dispositivo.');
+            }
+        });
+    }
+});
+
+// Stili aggiuntivi per migliorare l'integrazione
+const crosswordStyles = `
+    /* Loading state */
+    #crossword-grid.loading,
+    #crossword-clues.loading {
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    /* Error state */
+    .crossword-error {
+        padding: 40px;
+        text-align: center;
+        color: #dc3545;
+        background: #f8d7da;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    
+    /* Miglioramenti responsive */
+    @media (max-width: 1200px) {
+        .crossword-container {
+            flex-direction: column;
+        }
+        
+        .clues-container {
+            max-width: 100%;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .crossword-grid td {
+            width: 30px;
+            height: 30px;
+        }
+        
+        .cell-input {
+            font-size: 16px;
+        }
+        
+        .controls {
+            flex-wrap: wrap;
+        }
+        
+        .controls select,
+        .controls button {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+    }
+    
+    /* Animazioni */
+    .cell-input.correct {
+        animation: correctPulse 0.5s ease;
+    }
+    
+    @keyframes correctPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .cell-input.incorrect {
+        animation: incorrectShake 0.5s ease;
+    }
+    
+    @keyframes incorrectShake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+`;
+
+// Aggiungi gli stili al documento
+document.addEventListener('DOMContentLoaded', function() {
+    const styleEl = document.createElement('style');
+    styleEl.textContent = crosswordStyles;
+    document.head.appendChild(styleEl);
 });
