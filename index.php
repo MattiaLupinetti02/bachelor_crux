@@ -20,9 +20,9 @@ require_once 'includes/database.php';
                 <button id="switchToPenance" class="switch-btn">
                     <i class="fas fa-exchange-alt"></i> Vai alle Penitenze
                 </button>
-                <button id="switchToCrossword" class="switch-btn">
+                <!--<button id="switchToCrossword" class="switch-btn">
                     <i class="fas fa-puzzle-piece"></i> Cruciverba
-                </button>
+                </button>-->
             </div>
             <h1><i class="fas fa-book"></i> RUOTA DEI LIBRI</h1>
             <p class="subtitle">Clicca sulla ruota per estrarre una domanda su uno dei libri!</p>
@@ -30,30 +30,22 @@ require_once 'includes/database.php';
         
         <main class="main-content">
             <div class="controls">
-                
-                <label for="difficulty-select">Difficoltà:</label>
-                <select id="difficulty-select">
-                    <option value="facile">Facile</option>
-                    <option value="medio">Medio</option>
-                    <option value="difficile">Difficile</option>
-                </select>
-                
-                <!--<button id="generate-crossword">Genera Nuovo Cruciverba</button>-->
-                
                 <button id="check-solution">Controlla Soluzione</button>
                 <button id="reveal-solution">Mostra Soluzione</button>
             </div>
-        
+            
             <div class="stats" id="stats">
                 Parole piazzate: <span id="placed-count">0</span> | 
-                Dimensioni: <span id="dimensions">15x15</span>
+                Dimensioni: <span id="dimensions">25x25</span>
             </div>
             
             <div class="crossword-container">
+                <!-- GRIGLIA DEL CRUCIVERBA -->
                 <div id="crossword-grid">
                     <!-- La griglia verrà generata qui -->
                 </div>
                 
+                <!-- DEFINIZIONI SOTTO LA GRIGLIA -->
                 <div class="clues-container">
                     <h2>Definizioni</h2>
                     <div id="crossword-clues">
