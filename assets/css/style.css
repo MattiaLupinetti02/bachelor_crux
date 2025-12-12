@@ -870,7 +870,7 @@ body {
     flex-direction: column;
     padding: 40px;
     gap: 30px;
-    max-width: 1200px;
+    max-width: 100%;
     margin: 0 auto;
 }
 
@@ -878,8 +878,9 @@ body {
 .crossword-container {
     display: flex;
     flex-direction: column;
-    gap: 30px;
+    align-items: center;
     width: 100%;
+    gap: 30px;
 }
 
 /* Controlli centrati */
@@ -923,14 +924,16 @@ body {
 /* Contenitore definizioni - sotto la griglia, sempre verticale */
 .clues-container {
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 20px;
     padding: 30px;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
     border: 2px solid white;
 }
 
+/* Titolo delle definizioni centrato */
 .clues-container h2 {
     color: var(--primary-color);
     margin-bottom: 25px;
@@ -938,32 +941,33 @@ body {
     border-bottom: 3px solid var(--primary-color);
     font-size: 1.8rem;
     text-align: center;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
+}
+/* Sezioni orizzontali e verticali affiancate su desktop */
+.clues-container-inner {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 40px;
+    width: 100%;
 }
 
 /* Contenitore interno definizioni - SEMPRE VERTICALE */
 #crossword-clues {
     display: flex;
-    flex-direction: column; /* Forza layout verticale */
-    gap: 30px;
+    flex-direction: column;
+    gap: 40px;
     width: 100%;
 }
 
-/* Legenda difficoltà - sotto il titolo */
 .difficulty-legend {
     display: flex;
-    flex-wrap: wrap;
     justify-content: center;
-    gap: 20px;
-    margin: 20px 0 30px 0;
+    gap: 30px;
+    margin: 20px 0 40px 0;
     padding: 20px;
     background: white;
     border-radius: 15px;
+    flex-wrap: wrap;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    border: 2px solid #e9ecef;
 }
 
 .legend-item {
@@ -991,9 +995,11 @@ body {
     padding: 25px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
     border: 2px solid #e9ecef;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
+
 
 .clue-section:hover {
     transform: translateY(-5px);
@@ -1001,7 +1007,7 @@ body {
     border-color: var(--secondary-color);
 }
 
-/* Titoli sezioni */
+/* Titolo sezione */
 .clue-section h3 {
     color: var(--dark-color);
     margin-bottom: 20px;
@@ -1009,18 +1015,128 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding-bottom: 12px;
+    padding-bottom: 15px;
     border-bottom: 2px solid var(--secondary-color);
+    flex-shrink: 0;
 }
 
-/* Liste definizioni */
+/* Lista definizioni con scroll se necessario */
 .clue-section ol {
     list-style: none;
     padding-left: 0;
     counter-reset: clue-counter;
-    max-height: 300px;
     overflow-y: auto;
+    flex-grow: 1;
+    max-height: 500px;
     padding-right: 10px;
+}
+
+/* Scrollbar personalizzata */
+.clue-section ol::-webkit-scrollbar {
+    width: 6px;
+}
+
+.clue-section ol::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.clue-section ol::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+/* Elementi lista */
+.clue-section li {
+    counter-increment: clue-counter;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 10px;
+    border-left: 4px solid var(--secondary-color);
+    transition: all 0.2s ease;
+}
+
+.clue-section li:before {
+    content: counter(clue-counter) ". ";
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+.clue-section li strong {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* Responsive per tablet */
+@media (max-width: 1024px) {
+    .clues-container-inner {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .clues-container {
+        padding: 25px;
+    }
+    
+    .clue-section ol {
+        max-height: 400px;
+    }
+}
+
+/* Responsive per mobile */
+@media (max-width: 768px) {
+    .clues-container {
+        padding: 20px;
+    }
+    
+    .clues-container h2 {
+        font-size: 1.5rem;
+    }
+    
+    .difficulty-legend {
+        gap: 15px;
+        padding: 15px;
+        margin: 15px 0 30px 0;
+    }
+    
+    .clue-section {
+        padding: 20px;
+    }
+    
+    .clue-section h3 {
+        font-size: 1.2rem;
+    }
+    
+    .clue-section ol {
+        max-height: 300px;
+    }
+    
+    .clue-section li {
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+
+/* Per schermi molto piccoli */
+@media (max-width: 480px) {
+    .clues-container {
+        padding: 15px;
+    }
+    
+    .clue-section {
+        padding: 15px;
+    }
+    
+    .clue-section h3 {
+        font-size: 1.1rem;
+    }
+    
+    .clue-section ol {
+        max-height: 250px;
+    }
 }
 
 /* Elementi lista */

@@ -469,10 +469,10 @@ class CrosswordGenerator {
         
         // Sezione orizzontali
         let horizontalWords = this.placedWords.filter(w => w.direction === 'horizontal');
-        let horizontalHtml = '';
+        let horizontalHtml = '<div class="clues-container-inner">';
         
         if (horizontalWords.length > 0) {
-            horizontalHtml = `
+            horizontalHtml += `
                 <div class="clue-section">
                     <h3><i class="fas fa-arrow-right"></i> Orizzontali (${horizontalWords.length})</h3>
                     <ol>
@@ -488,6 +488,8 @@ class CrosswordGenerator {
                 </div>
             `;
         }
+        horizontalHtml+= `</div>`
+
         
         // Sezione verticali
         let verticalWords = this.placedWords.filter(w => w.direction === 'vertical');
