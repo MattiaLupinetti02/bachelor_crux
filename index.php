@@ -79,8 +79,8 @@ require_once 'includes/database.php';
         </div>
         
         <footer class="footer">
-            <p>Ruota dei Libri &copy; <?php echo date('Y'); ?> - Gioco letterario educativo</p>
-            <p><small>Totalmente personalizzabile - Database MySQL - PHP/JS/CSS</small></p>
+            <p>Ruota dei Libri &copy; <?php echo date('Y'); ?> - Cruciverba letterario</p>
+            <p><small>Laurea di Giada</small></p>
         </footer>
     </div>
     
