@@ -37,7 +37,7 @@ require_once 'includes/database.php';
                     <div class="pointer"></div>
                 </div>
                 
-                <div class="controls">
+                <!--<div class="controls">
                     <div class="player-input">
                         <label for="playerName"><i class="fas fa-user"></i> Giocatore:</label>
                         <input type="text" id="playerName" placeholder="Il tuo nome" value="Giocatore">
@@ -45,7 +45,7 @@ require_once 'includes/database.php';
                     <button id="resetButton" class="btn-secondary">
                         <i class="fas fa-redo"></i> Reset Ruota
                     </button>
-                </div>
+                </div>-->
             </div>
             
             <div class="prizes-panel">
@@ -89,6 +89,6 @@ require_once 'includes/database.php';
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="assets/js/wheel.js"></script>
-    <script src="assets/js/crossword-game.js"></script>
+    <!--<script src="assets/js/crossword-game.js"></script>-->
 </body>
 </html>
