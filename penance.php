@@ -81,8 +81,8 @@ require_once 'includes/database.php';
         </div>
         
         <footer class="footer">
-            <p>Ruota delle Penitenze &copy; <?php echo date('Y'); ?> - Gioco divertente educativo</p>
-            <p><small>Totalmente personalizzabile - Database MySQL - PHP/JS/CSS</small></p>
+            <p>Ruota delle Penitenze &copy; <?php echo date('Y'); ?> - Cruciverba letterario</p>
+            <p><small>Se vuoi consigli devi pagare</small></p>
         </footer>
     </div>
     
