@@ -70,11 +70,8 @@ require_once 'includes/database.php';
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="shareButton" class="btn-share">
-                        <i class="fas fa-share-alt"></i> Condividi
-                    </button>
                     <button id="playAgainButton" class="btn-primary">
-                        <i class="fas fa-redo"></i> Gioca Ancora
+                        <i class="fas fa-redo"></i> Chiudi
                     </button>
                 </div>
             </div>

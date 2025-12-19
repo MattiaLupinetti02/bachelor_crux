@@ -344,8 +344,9 @@ body {
     margin-bottom: 10px;
 }
 
+/* Stato iniziale - compatibile con jQuery fadeIn/fadeOut */
 .modal {
-    display: none;
+    display: none; /* jQuery gestisce display: none/block */
     position: fixed;
     top: 0;
     left: 0;
@@ -353,14 +354,16 @@ body {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
     z-index: 2000;
+    
+    /* Centramento SEMPRE attivo quando visibile */
     justify-content: center;
     align-items: center;
-    animation: fadeIn 0.3s ease;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+/* jQuery aggiungerà display: block quando usa fadeIn() */
+/* Dobbiamo forzare display: flex quando il modal è visibile */
+.modal[style*="display: block"] {
+    display: flex !important;
 }
 
 .modal-content {
@@ -371,6 +374,27 @@ body {
     overflow: hidden;
     animation: slideUp 0.4s ease;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    margin: 20px;
+    /* Stato iniziale per l'animazione */
+    transform: translateY(30px);
+    opacity: 0;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* Quando jQuery fa fadeIn(), anima anche il contenuto */
+.modal[style*="display: block"] .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Versione alternativa con classe specifica */
+.modal.show {
+    display: flex !important;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
 }
 
 @keyframes slideUp {
@@ -378,6 +402,7 @@ body {
     to { transform: translateY(0); opacity: 1; }
 }
 
+/* Il resto del CSS rimane invariato */
 .modal-header {
     background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
     color: white;

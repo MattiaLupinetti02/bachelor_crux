@@ -7,7 +7,7 @@ require_once 'includes/database.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruota dei Libri - Gioco Letterario</title>
+    <title>Cruciverba Letterario</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">  
@@ -25,7 +25,7 @@ require_once 'includes/database.php';
                 </button>-->
             </div>
             <h1><i class="fas fa-book"></i> RUOTA DEI LIBRI</h1>
-            <p class="subtitle">Clicca sulla ruota per estrarre una domanda su uno dei libri!</p>
+            <p class="subtitle">Leggi tanti libri, ora scopriamo come li leggi</p>
         </header>
         
         <main class="main-content">
@@ -68,12 +68,8 @@ require_once 'includes/database.php';
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="shareButton" class="btn-share">
-                        <i class="fas fa-share-alt"></i> Condividi
-                    </button>
-                    <button id="playAgainButton" class="btn-primary">
-                        <i class="fas fa-redo"></i> Gioca Ancora
-                    </button>
+
+                    
                 </div>
             </div>
         </div>

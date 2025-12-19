@@ -285,18 +285,54 @@ $(document).ready(function() {
             }
         });
     }
-    
+    // Metodo 1: Con import dinamico
+    async function caricaImmaginePenitenzaCasuale() {
+        try {
+            const apiUrl = 'api/get_images.php';
+            const response = await fetch(apiUrl);
+            const nomiImmagini = await response.json();
+            
+            if (!nomiImmagini || nomiImmagini.length === 0) {
+                console.warn('Nessuna immagine trovata');
+                return null;
+            }
+            
+            const nomeCasuale = nomiImmagini[Math.floor(Math.random() * nomiImmagini.length)];
+            console.log("da dentro caricaImmagineCasuale")
+            console.log(nomeCasuale)
+            return `assets/img/penitenza/${nomeCasuale}`; // ← STRINGA del path
+            
+        } catch (error) {
+            console.error('Errore:', error);
+            return null;
+        }
+    }
+
+
     // Mostra il risultato nel modal
-    function showResult(item) {
+    async function showResult(item) {
         const isBook = currentWheelType === 'book';
-        const title = isBook ? `Domanda su: ${item.book_title}` : 'Penitenza!';
         const icon = isBook ? 'fa-book' : 'fa-theater-masks';
         
+        const img_path = await caricaImmaginePenitenzaCasuale()
+        console.log("da dentro showresult")
+        console.log(img_path)
         const content = $(`
             <div class="result-content">
                 <div class="result-header">
-                    <i class="fas ${icon}"></i>
-                    <h3>${title}</h3>
+                    
+                    <img 
+                        src="${img_path}" 
+                        alt="Descrizione testuale dell'immagine"
+                        width="800"
+                        height="600"
+                        loading="lazy"
+                        decoding="async"
+                        title="Titolo opzionale"
+                        class="mia-classe"
+                        id="mio-id"
+                        style="border: 1px solid #ccc;"
+                    >
                     <button class="close-banner">&times;</button>
                 </div>
                 <div class="result-body">
@@ -328,14 +364,14 @@ $(document).ready(function() {
         // Azioni per le penitenze
         if (!isBook) {
             content.find('.btn-complete').click(function() {
-                alert('🎉 Penitenza completata! Bravo!');
+                alert('🎉 Penitenza completata! Brava!');
                 $('#resultModal').fadeOut();
             });
             
             content.find('.btn-skip').click(function() {
-                if (confirm('Sei sicuro di voler saltare questa penitenza?\nPotrai riprovare in seguito.')) {
+                
                     $('#resultModal').fadeOut();
-                }
+                
             });
         }
         
