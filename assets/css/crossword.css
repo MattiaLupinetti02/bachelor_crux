@@ -104,7 +104,7 @@
 .clue-section ol {
     list-style: none;
     padding-left: 0;
-    counter-reset: clue-counter;
+    counter-reset: none;
 }
 
 .clue-section li {

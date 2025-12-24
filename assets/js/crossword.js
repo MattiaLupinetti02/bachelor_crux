@@ -10,6 +10,8 @@ class CrosswordGenerator {
             { x: 1, y: 0, name: 'horizontal' },
             { x: 0, y: 1, name: 'vertical' }
         ];
+        this.wordCounter = 1;
+        this.wordNumbers = new Map();
         this.initializeGrid();
     }
 
@@ -17,8 +19,10 @@ class CrosswordGenerator {
         this.grid = Array(this.height).fill().map(() => 
             Array(this.width).fill({ 
                 letter: '', 
-                wordId: null, 
-                isStart: false,
+                horizontalWord: null,
+                verticalWord: null,
+                horizontalStart: false,
+                verticalStart: false,
                 isBlack: true 
             })
         );
@@ -40,7 +44,8 @@ class CrosswordGenerator {
                     placed: false,
                     direction: null,
                     x: null,
-                    y: null
+                    y: null,
+                    number: null
                 }));
                 
                 // Ordina per lunghezza (decrescente)
@@ -123,6 +128,7 @@ class CrosswordGenerator {
         
         firstWord.placed = true;
         this.placedWords.push(firstWord);
+        this.assignWordNumber(firstWord);
 
         // Ordina le parole rimanenti per facilità di piazzamento
         const remainingWords = validWords.slice(1);
@@ -143,6 +149,7 @@ class CrosswordGenerator {
             
             if (this.tryPlaceWord(word)) {
                 placedCount++;
+                this.assignWordNumber(word);
                 
                 if (placedCount % 10 === 0) {
                     console.log(`Piazzate ${placedCount}/${remainingWords.length} parole`);
@@ -164,6 +171,19 @@ class CrosswordGenerator {
         console.log(`Generazione completata: ${this.placedWords.length}/${validWords.length} parole piazzate`);
         
         return this.grid;
+    }
+
+    assignWordNumber(word) {
+        if (!this.wordNumbers.has(word.id)) {
+            this.wordNumbers.set(word.id, this.wordCounter);
+            word.number = this.wordCounter;
+            this.wordCounter++;
+        }
+        return this.wordNumbers.get(word.id);
+    }
+
+    getWordNumber(wordId) {
+        return this.wordNumbers.get(wordId) || '';
     }
 
     placeWord(word, x, y, direction) {
@@ -206,14 +226,35 @@ class CrosswordGenerator {
             }
             
             const currentCell = this.grid[posY][posX];
-            const isStart = i === 0;
             
-            this.grid[posY][posX] = {
+            // Crea la nuova cella
+            const newCell = {
                 letter: word.word[i],
-                wordId: word.id,
-                isStart: isStart || currentCell.isStart,
                 isBlack: false
             };
+            
+            // Aggiungi informazioni sulla direzione
+            if (direction === 'horizontal') {
+                newCell.horizontalWord = word.id;
+                // Se è la prima cella, segnala come inizio orizzontale
+                if (i === 0) newCell.horizontalStart = true;
+                else newCell.horizontalStart = false;
+                
+                // Mantieni le informazioni verticali esistenti
+                newCell.verticalWord = currentCell.verticalWord;
+                newCell.verticalStart = currentCell.verticalStart;
+            } else { // direction === 'vertical'
+                newCell.verticalWord = word.id;
+                // Se è la prima cella, segnala come inizio verticale
+                if (i === 0) newCell.verticalStart = true;
+                else newCell.verticalStart = false;
+                
+                // Mantieni le informazioni orizzontali esistenti
+                newCell.horizontalWord = currentCell.horizontalWord;
+                newCell.horizontalStart = currentCell.horizontalStart;
+            }
+            
+            this.grid[posY][posX] = newCell;
         }
         
         return true;
@@ -393,6 +434,10 @@ class CrosswordGenerator {
             for (let x = 0; x < this.width; x++) {
                 if (this.grid[y][x].letter === '') {
                     this.grid[y][x].isBlack = true;
+                    this.grid[y][x].horizontalWord = null;
+                    this.grid[y][x].verticalWord = null;
+                    this.grid[y][x].horizontalStart = false;
+                    this.grid[y][x].verticalStart = false;
                 } else {
                     this.grid[y][x].isBlack = false;
                 }
@@ -400,7 +445,6 @@ class CrosswordGenerator {
         }
     }
 
-    // Nella classe CrosswordGenerator, modifica il metodo renderHTML:
     renderHTML() {
         let html = '<table class="crossword-grid" cellspacing="0" cellpadding="0">';
         
@@ -409,31 +453,62 @@ class CrosswordGenerator {
             for (let x = 0; x < this.width; x++) {
                 const cell = this.grid[y][x];
                 const cellClass = cell.isBlack ? 'empty' : 'filled';
-                const number = cell.isStart ? this.getWordNumber(cell.wordId) : '';
                 
-                // Ottieni la difficoltà della parola
-                const word = this.words.find(w => w.id === cell.wordId);
-                const difficultyClass = word && word.difficulty ? `cell-difficulty-${word.difficulty}` : '';
-                const numberClass = word && word.difficulty ? word.difficulty : '';
+                // Controlla se è inizio di parole orizzontali/verticali
+                const numbers = [];
+                
+                if (cell.horizontalStart) {
+                    const horizontalNumber = this.getWordNumber(cell.horizontalWord);
+                    if (horizontalNumber) {
+                        numbers.push(horizontalNumber);
+                    }
+                }
+                
+                if (cell.verticalStart) {
+                    const verticalNumber = this.getWordNumber(cell.verticalWord);
+                    if (verticalNumber && !numbers.includes(verticalNumber)) {
+                        numbers.push(verticalNumber);
+                    }
+                }
+                
+                // Ottieni la difficoltà della parola (per colori)
+                let difficultyClass = '';
+                let numberClass = '';
+                if (cell.horizontalWord !== null) {
+                    const word = this.words.find(w => w.id === cell.horizontalWord);
+                    if (word && word.difficulty) {
+                        difficultyClass = `cell-difficulty-${word.difficulty}`;
+                        numberClass = word.difficulty;
+                    }
+                } else if (cell.verticalWord !== null) {
+                    const word = this.words.find(w => w.id === cell.verticalWord);
+                    if (word && word.difficulty) {
+                        difficultyClass = `cell-difficulty-${word.difficulty}`;
+                        numberClass = word.difficulty;
+                    }
+                }
                 
                 html += `<td class="${cellClass} ${difficultyClass}" data-x="${x}" data-y="${y}">`;
                 
-                if (number) {
-                    html += `<span class="cell-number ${numberClass}">${number}</span>`;
+                if (numbers.length > 0) {
+                    // Mostra numeri separati da slash se più di uno
+                    const numberText = numbers.sort((a, b) => a - b).join('/');
+                    html += `<span class="cell-number ${numberClass}">${numberText}</span>`;
                     
-                    // Aggiungi tooltip con difficoltà
-                    if (word && word.difficulty) {
+                    // Aggiungi tooltip con difficoltà se disponibile
+                    if (difficultyClass) {
                         const difficultyLabels = {
                             'facile': 'Facile',
                             'medio': 'Medio', 
                             'difficile': 'Difficile'
                         };
-                        html += `<div class="cell-difficulty-tooltip">${difficultyLabels[word.difficulty] || word.difficulty}</div>`;
+                        const difficultyType = difficultyClass.replace('cell-difficulty-', '');
+                        html += `<div class="cell-difficulty-tooltip">${difficultyLabels[difficultyType] || difficultyType}</div>`;
                     }
                 }
                 
                 if (!cell.isBlack) {
-                    const inputClass = word && word.difficulty ? word.difficulty : '';
+                    const inputClass = numberClass || '';
                     html += `<input type="text" maxlength="1" class="cell-input ${inputClass}" data-x="${x}" data-y="${y}">`;
                 }
                 
@@ -446,8 +521,6 @@ class CrosswordGenerator {
         return html;
     }
 
-    // Modifica il metodo renderClues per includere la difficoltà:
-    // Modifica il metodo renderClues per layout verticale
     renderClues() {
         // Legenda difficoltà
         const legendHtml = `
@@ -467,8 +540,11 @@ class CrosswordGenerator {
             </div>
         `;
         
-        // Sezione orizzontali
-        let horizontalWords = this.placedWords.filter(w => w.direction === 'horizontal');
+        // Sezione orizzontali - ordinate per numero
+        const horizontalWords = this.placedWords
+            .filter(w => w.direction === 'horizontal')
+            .sort((a, b) => (a.number || 0) - (b.number || 0));
+        
         let horizontalHtml = '<div class="clues-container-inner">';
         
         if (horizontalWords.length > 0) {
@@ -476,9 +552,9 @@ class CrosswordGenerator {
                 <div class="clue-section">
                     <h3><i class="fas fa-arrow-right"></i> Orizzontali (${horizontalWords.length})</h3>
                     <ol>
-                        ${horizontalWords.map((word, index) => `
-                            <li class="definition-item ${word.difficulty || ''}">
-                                <strong>${index + 1}.</strong> 
+                        ${horizontalWords.map(word => `
+                            <li class="definition-item ${word.difficulty || ''}" data-word-id="${word.id}" data-word-number="${word.number || ''}">
+                                <strong>${word.number || ''}.</strong> 
                                 ${word.definition} 
                                 <small>(${word.book})</small>
                                 <span class="difficulty-badge ${word.difficulty || ''}">${word.difficulty || 'N/A'}</span>
@@ -488,11 +564,13 @@ class CrosswordGenerator {
                 </div>
             `;
         }
-        horizontalHtml+= `</div>`
-
+        horizontalHtml += '</div>';
         
-        // Sezione verticali
-        let verticalWords = this.placedWords.filter(w => w.direction === 'vertical');
+        // Sezione verticali - ordinate per numero
+        const verticalWords = this.placedWords
+            .filter(w => w.direction === 'vertical')
+            .sort((a, b) => (a.number || 0) - (b.number || 0));
+        
         let verticalHtml = '';
         
         if (verticalWords.length > 0) {
@@ -500,9 +578,9 @@ class CrosswordGenerator {
                 <div class="clue-section">
                     <h3><i class="fas fa-arrow-down"></i> Verticali (${verticalWords.length})</h3>
                     <ol>
-                        ${verticalWords.map((word, index) => `
-                            <li class="definition-item ${word.difficulty || ''}">
-                                <strong>${index + 1}.</strong> 
+                        ${verticalWords.map(word => `
+                            <li class="definition-item ${word.difficulty || ''}" data-word-id="${word.id}" data-word-number="${word.number || ''}">
+                                <strong>${word.number || ''}.</strong> 
                                 ${word.definition} 
                                 <small>(${word.book})</small>
                                 <span class="difficulty-badge ${word.difficulty || ''}">${word.difficulty || 'N/A'}</span>
@@ -513,39 +591,9 @@ class CrosswordGenerator {
             `;
         }
         
-        // Combina tutto: prima legenda, poi orizzontali, poi verticali
         return legendHtml + horizontalHtml + verticalHtml;
     }
 
-    getWordNumber(wordId) {
-        const word = this.words.find(w => w.id === wordId);
-        if (word && word.placed) {
-            const index = this.placedWords.findIndex(w => w.id === wordId);
-            return index + 1;
-        }
-        return '';
-    }
-/*
-    renderClues() {
-        let horizontalHtml = '<div class="clue-section"><h3>Orizzontali</h3><ol>';
-        let verticalHtml = '<div class="clue-section"><h3>Verticali</h3><ol>';
-        
-        this.placedWords.forEach((word, index) => {
-            const clueItem = `<li><strong>${index + 1}.</strong> ${word.definition} <small>(${word.book})</small></li>`;
-            
-            if (word.direction === 'horizontal') {
-                horizontalHtml += clueItem;
-            } else {
-                verticalHtml += clueItem;
-            }
-        });
-        
-        horizontalHtml += '</ol></div>';
-        verticalHtml += '</ol></div>';
-        
-        return horizontalHtml + verticalHtml;
-    }
-*/
     updateStats() {
         const statsElement = document.getElementById('stats');
         if (statsElement) {
@@ -585,6 +633,9 @@ async function initializeCrossword(difficulty = 'facile') {
     
     // Aggiungi gestione input
     setupInputHandlers(crossword);
+    
+    // Aggiungi evidenziazione interattiva
+    setupWordHighlighting(crossword);
     
     return crossword;
 }
@@ -669,7 +720,6 @@ function showResultInModal(message, type = 'success') {
 
 // Event listeners per i controlli
 $(document).ready(function() {
-    //const difficultySelect = document.getElementById('difficulty-select');
     const checkSolutionBtn = document.getElementById('check-solution');
     const revealSolutionBtn = document.getElementById('reveal-solution');
     const generateBtn = document.getElementById('generate-crossword');
@@ -678,7 +728,6 @@ $(document).ready(function() {
     
     if (generateBtn) {
         generateBtn.addEventListener('click', async function() {
-            //const difficulty = difficultySelect.value;
             currentCrossword = await initializeCrossword('difficile');
         });
     }
@@ -732,13 +781,10 @@ $(document).ready(function() {
     }
     
     // Genera un cruciverba all'avvio
-    
-    //if (difficultySelect) {
-        initializeCrossword('facile').then(crossword => {
-            console.log('dentro')
-            currentCrossword = crossword;
-        });
-    //}
+    initializeCrossword('facile').then(crossword => {
+        console.log('Cruciverba inizializzato');
+        currentCrossword = crossword;
+    });
     
     // Gestione del modal esistente
     const closeModal = document.querySelector('.close-modal');
@@ -771,6 +817,51 @@ $(document).ready(function() {
     }
 });
 
+function setupWordHighlighting(crossword) {
+    // Trova tutte le celle con parole
+    document.querySelectorAll('.crossword-grid td.filled').forEach(cell => {
+        const x = parseInt(cell.dataset.x);
+        const y = parseInt(cell.dataset.y);
+        const cellData = crossword.grid[y][x];
+        
+        if (cellData.horizontalWord !== null || cellData.verticalWord !== null) {
+            // Aggiungi event listener per evidenziare definizioni correlate
+            /*
+            cell.addEventListener('mouseenter', function() {
+                highlightClue(cellData, crossword);
+            });
+            
+            cell.addEventListener('mouseleave', function() {
+                removeHighlight();
+            });
+            */
+        }
+    });
+}
+
+function highlightClue(cellData, crossword) {
+    // Rimuovi evidenziazione precedente
+    removeHighlight();
+    
+    // Evidenzia tutte le parole associate a questa cella
+    const wordIds = [];
+    if (cellData.horizontalWord !== null) wordIds.push(cellData.horizontalWord);
+    if (cellData.verticalWord !== null) wordIds.push(cellData.verticalWord);
+    
+    for (const wordId of wordIds) {
+        const clueItems = document.querySelectorAll(`#crossword-clues li[data-word-id="${wordId}"]`);
+        clueItems.forEach(item => {
+            item.classList.add('highlighted');
+        });
+    }
+}
+
+function removeHighlight() {
+    document.querySelectorAll('#crossword-clues li.highlighted').forEach(item => {
+        item.classList.remove('highlighted');
+    });
+}
+
 // Stili aggiuntivi per migliorare l'integrazione
 const crosswordStyles = `
     /* Loading state */
@@ -792,6 +883,17 @@ const crosswordStyles = `
         background: #f8d7da;
         border-radius: 10px;
         margin: 20px 0;
+    }
+    
+    /* Numeri con slash per celle con più parole */
+    .cell-number {
+        font-size: 10px;
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        font-weight: bold;
+        z-index: 2;
+        pointer-events: none;
     }
     
     /* Miglioramenti responsive */
@@ -854,81 +956,3 @@ document.addEventListener('DOMContentLoaded', function() {
     styleEl.textContent = crosswordStyles;
     document.head.appendChild(styleEl);
 });
-// Aggiungi questa funzione per evidenziare le definizioni al passaggio del mouse sulla griglia
-function setupWordHighlighting(crossword) {
-    // Trova tutte le celle con parole
-    document.querySelectorAll('.crossword-grid td.filled').forEach(cell => {
-        const x = parseInt(cell.dataset.x);
-        const y = parseInt(cell.dataset.y);
-        const cellData = crossword.grid[y][x];
-        
-        if (cellData.wordId !== null) {
-            // Aggiungi event listener per hover
-            cell.addEventListener('mouseenter', function() {
-                highlightClue(cellData.wordId, crossword);
-            });
-            
-            cell.addEventListener('mouseleave', function() {
-                removeHighlight();
-            });
-            
-            cell.addEventListener('click', function() {
-                // Quando clicchi su una cella, evidenzia anche nella definizione
-                highlightClue(cellData.wordId, crossword);
-                setTimeout(removeHighlight, 2000);
-            });
-        }
-    });
-}
-
-function highlightClue(wordId, crossword) {
-    // Rimuovi evidenziazione precedente
-    removeHighlight();
-    
-    // Trova l'indice della parola
-    const wordIndex = crossword.placedWords.findIndex(w => w.id === wordId);
-    if (wordIndex !== -1) {
-        // Evidenzia nella definizione
-        const clueItem = document.querySelector(`#crossword-clues li:nth-child(${wordIndex + 1})`);
-        if (clueItem) {
-            clueItem.classList.add('highlighted');
-            clueItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
-}
-
-function removeHighlight() {
-    document.querySelectorAll('#crossword-clues li.highlighted').forEach(item => {
-        item.classList.remove('highlighted');
-    });
-}
-
-// Modifica initializeCrossword per includere l'highlighting
-async function initializeCrossword(difficulty = 'facile') {
-    const crossword = new CrosswordGenerator(25, 25);
-    
-    // Carica definizioni dal database
-    const loaded = await crossword.loadDefinitions(difficulty);
-    
-    if (!loaded) {
-        alert('Errore nel caricamento delle definizioni');
-        return;
-    }
-    
-    // Genera il cruciverba
-    crossword.generate();
-    
-    // Renderizza la griglia
-    document.getElementById('crossword-grid').innerHTML = crossword.renderHTML();
-    
-    // Renderizza le definizioni
-    document.getElementById('crossword-clues').innerHTML = crossword.renderClues();
-    
-    // Aggiungi gestione input
-    setupInputHandlers(crossword);
-    
-    // Aggiungi evidenziazione interattiva
-    setupWordHighlighting(crossword);
-    
-    return crossword;
-}
